@@ -1,0 +1,15 @@
+{
+  "name": "fancy-new-file",
+  "main": "./lib/fancy-new-file",
+  "version": "0.0.1",
+  "main": "./lib/fancy-new-file-view",
+  "description": "Create or open files and directories by typing a relative path.",
+  "activationEvents": ["fancy-new-file:toggle"],
+  "repository": "https://github.com/rev087/fancy-new-file",
+  "license": "MIT",
+  "engines": {
+    "atom": ">0.50.0"
+  },
+  "dependencies": {
+  }
+}
