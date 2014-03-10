@@ -43,10 +43,15 @@ class FancyNewFileView extends View
         consumeKeypress ev
         @autocomplete @miniEditor.getEditor().getText()
 
+  # Retrieves the reference directory for the relative paths
+  referenceDir: () ->
+    homeDir = process.env.HOME or process.env.HOMEPATH or process.env.USERPROFILE
+    atom.project.getPath() or homeDir
+
   # Resolves the path being inputted in the dialog, up to the last slash
   inputPath: () ->
     input = @miniEditor.getEditor().getText()
-    path.join atom.project.getPath(), input.substr(0, input.lastIndexOf('/'))
+    path.join @referenceDir(), input.substr(0, input.lastIndexOf('/'))
 
   # Returns the list of directories matching the current input (path and autocomplete fragment)
   getDirs: (callback) ->
@@ -79,7 +84,7 @@ class FancyNewFileView extends View
 
   confirm: ->
     filePath = @miniEditor.getEditor().getText()
-    atom.open pathsToOpen: [path.join(atom.project.getPath(), filePath)]
+    atom.open pathsToOpen: [path.join(@referenceDir(), filePath)]
     @detach()
 
   detach: ->
