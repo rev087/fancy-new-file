@@ -44,14 +44,14 @@ class FancyNewFileView extends View
         @autocomplete @miniEditor.getEditor().getText()
 
   # Resolves the path being inputted in the dialog, up to the last slash
-  inputPath: ()
+  inputPath: () ->
     input = @miniEditor.getEditor().getText()
     path.join atom.project.getPath(), input.substr(0, input.lastIndexOf('/'))
 
   # Returns the list of directories matching the current input (path and autocomplete fragment)
   getDirs: (callback) ->
-
-    fs.readdir inputPath, (err, files) =>
+    input = @miniEditor.getEditor().getText()
+    fs.readdir @inputPath(), (err, files) =>
       files = files.filter (fileName) =>
         fragment = input.substr(input.lastIndexOf('/') + 1, input.length)
         isDir = fs.statSync(path.join(@inputPath(), fileName)).isDirectory()
