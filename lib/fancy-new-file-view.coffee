@@ -67,7 +67,7 @@ class FancyNewFileView extends View
   # Called only when pressing Tab to trigger auto-completion
   autocomplete: (str) ->
     @getDirs (files) ->
-      if files.length == 1
+      if files?.length == 1
         newPath = path.join(@inputPath(), files[0])
         relativePath = atom.project.relativize(newPath) + '/'
         @miniEditor.getEditor().setText relativePath
