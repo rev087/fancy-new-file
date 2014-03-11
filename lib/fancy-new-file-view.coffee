@@ -57,7 +57,7 @@ class FancyNewFileView extends View
   getDirs: (callback) ->
     input = @miniEditor.getEditor().getText()
     fs.readdir @inputPath(), (err, files) =>
-      files = files.filter (fileName) =>
+      files = files?.filter (fileName) =>
         fragment = input.substr(input.lastIndexOf('/') + 1, input.length)
         isDir = fs.statSync(path.join(@inputPath(), fileName)).isDirectory()
         isDir and fileName.toLowerCase().indexOf(fragment) is 0
