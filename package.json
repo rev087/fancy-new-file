@@ -1,7 +1,7 @@
 {
   "name": "fancy-new-file",
   "main": "./lib/fancy-new-file-view",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "Create or open files and directories by typing a relative path.",
   "activationEvents": [
     "fancy-new-file:toggle"
