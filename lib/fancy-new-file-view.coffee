@@ -77,7 +77,7 @@ class FancyNewFileView extends View
   # Renders the list of directories
   renderDirList: (dirs) ->
     @directoryList.empty()
-    dirs.forEach (file) =>
+    dirs?.forEach (file) =>
       @directoryList.append $$ ->
         @li class: 'list-item', =>
         @span class: 'icon icon-file-directory', file
