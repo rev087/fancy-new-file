@@ -14,7 +14,7 @@ class FancyNewFileView extends View
 
   @content: (params)->
     @div class: 'fancy-new-file overlay from-top', =>
-      @p 'New File'
+      @p outlet:'message', class:'icon icon-file-add', "Enter the path for the new file/directory. Directories end with a '" + path.sep + "'."
       @subview 'miniEditor', new EditorView({mini:true})
       @ul class: 'list-group', outlet: 'directoryList'
 
@@ -31,8 +31,7 @@ class FancyNewFileView extends View
     consumeKeypress = (ev) => ev.preventDefault(); ev.stopPropagation()
 
     # Populate the directory listing live
-    @miniEditor.getEditor().getBuffer().on 'changed', (ev) =>
-      @getDirs (files) -> @renderDirList files
+    @miniEditor.getEditor().getBuffer().on 'changed', (ev) => @update()
 
     # Consume the keydown event from holding down the Tab key
     @miniEditor.on 'keydown', (ev) => if ev.keyCode is 9 then consumeKeypress ev
@@ -74,6 +73,23 @@ class FancyNewFileView extends View
       else
         atom.beep()
 
+  update: ->
+    @getDirs (files) ->
+      @renderDirList files
+
+    if /\/$/.test @miniEditor.getEditor().getText()
+      @setMessage 'file-directory-create'
+    else
+      @setMessage 'file-add'
+
+  setMessage: (icon, str) ->
+    @message.removeClass 'icon'\
+      + ' icon-file-add'\
+      + ' icon-file-directory-create'\
+      + ' icon-alert'
+    if icon? then @message.addClass 'icon icon-' + icon
+    @message.text str or "Enter the path for the new file/directory. Directories end with a '" + path.sep + "'."
+
   # Renders the list of directories
   renderDirList: (dirs) ->
     @directoryList.empty()
@@ -83,14 +99,21 @@ class FancyNewFileView extends View
         @span class: 'icon icon-file-directory', file
 
   confirm: ->
-    filePath = @miniEditor.getEditor().getText()
-    atom.open pathsToOpen: [path.join(@referenceDir(), filePath)]
-    @detach()
+    inputString = @miniEditor.getEditor().getText()
+    filePath = path.join(@referenceDir(), inputString)
+
+    if not /\/$/.test(inputString)
+      atom.open pathsToOpen: [filePath]
+      @detach()
+    else
+      @setMessage 'alert', 'Directory creation is not yet implemented'
+      atom.beep()
 
   detach: ->
     return unless @hasParent()
     @detaching = true
     @miniEditor.getEditor().setText ''
+    @setMessage()
     @directoryList.empty()
     miniEditorFocused = @miniEditor.isFocused
 
