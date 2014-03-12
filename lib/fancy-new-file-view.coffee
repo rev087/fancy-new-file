@@ -22,7 +22,7 @@ class FancyNewFileView extends View
 
   initialize: (serializeState) ->
     atom.workspaceView.command "fancy-new-file:toggle", => @toggle()
-    @miniEditor.setPlaceholderText('path/to/file.txt');
+    @miniEditor.setPlaceholderText(path.join('path','to','file.txt'));
 
     @on 'core:confirm', => @confirm()
     @on 'core:cancel', => @detach()
@@ -51,14 +51,14 @@ class FancyNewFileView extends View
   # Resolves the path being inputted in the dialog, up to the last slash
   inputPath: () ->
     input = @miniEditor.getEditor().getText()
-    path.join @referenceDir(), input.substr(0, input.lastIndexOf('/'))
+    path.join @referenceDir(), input.substr(0, input.lastIndexOf(path.sep))
 
   # Returns the list of directories matching the current input (path and autocomplete fragment)
   getDirs: (callback) ->
     input = @miniEditor.getEditor().getText()
     fs.readdir @inputPath(), (err, files) =>
       files = files?.filter (fileName) =>
-        fragment = input.substr(input.lastIndexOf('/') + 1, input.length)
+        fragment = input.substr(input.lastIndexOf(path.sep) + 1, input.length)
         isDir = fs.statSync(path.join(@inputPath(), fileName)).isDirectory()
         isDir and fileName.toLowerCase().indexOf(fragment) is 0
 
@@ -69,7 +69,7 @@ class FancyNewFileView extends View
     @getDirs (files) ->
       if files?.length == 1
         newPath = path.join(@inputPath(), files[0])
-        relativePath = atom.project.relativize(newPath) + '/'
+        relativePath = atom.project.relativize(newPath) + path.sep
         @miniEditor.getEditor().setText relativePath
       else
         atom.beep()
