@@ -2,7 +2,8 @@
 
 Fancy New File is a plugin for Github's Atom text editor that gives you a
 handy dialog (accessible via `alt-cmd-n`) to create new files and
-directory trees by typing a relative path.
+directory trees by typing a relative path, with bash-like autocomplete support
+for paths.
 
 Based on sukoroda`s
 [Advanced New File](https://github.com/skuroda/Sublime-AdvancedNewFile)
