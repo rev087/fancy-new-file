@@ -1,6 +1,7 @@
 {$, $$, View, EditorView} = require 'atom'
 fs = require 'fs'
 path = require 'path'
+mkdirp = require 'mkdirp'
 
 module.exports =
 class FancyNewFileView extends View
@@ -99,15 +100,18 @@ class FancyNewFileView extends View
         @span class: 'icon icon-file-directory', file
 
   confirm: ->
-    inputString = @miniEditor.getEditor().getText()
-    filePath = path.join(@referenceDir(), inputString)
+    relativePath = @miniEditor.getEditor().getText()
+    pathToCreate = path.join(@referenceDir(), relativePath)
 
-    if not /\/$/.test(inputString)
-      atom.open pathsToOpen: [filePath]
-      @detach()
-    else
-      @setMessage 'alert', 'Directory creation is not yet implemented'
-      atom.beep()
+    try
+      if /\/$/.test(relativePath)
+        mkdirp pathToCreate
+      else
+        atom.open pathsToOpen: [pathToCreate]
+    catch error
+      @setMessage 'alert', error.message
+
+    @detach()
 
   detach: ->
     return unless @hasParent()
