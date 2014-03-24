@@ -6,6 +6,8 @@ mkdirp = require 'mkdirp'
 module.exports =
 class FancyNewFileView extends View
   fancyNewFileView: null
+  @configDefaults:
+    suggestCurrentFilePath: false
 
   @activate: (state) ->
     @fancyNewFileView = new FancyNewFileView(state.fancyNewFileViewState)
@@ -127,10 +129,19 @@ class FancyNewFileView extends View
     @detaching = false
 
   attach: ->
+    @suggestPath()
     @previouslyFocusedElement = $(':focus')
     atom.workspaceView.append(this)
     @miniEditor.focus()
     @getDirs (files) -> @renderDirList files
+
+  suggestPath: ->
+    if atom.config.get 'fancy-new-file.suggestCurrentFilePath'
+      activePath = atom.workspace.getActiveEditor()?.getPath()
+      if activePath
+        activeDir = path.dirname(activePath) + '/'
+        suggestedPath = path.relative @referenceDir(), activeDir
+        @miniEditor.getEditor().setText suggestedPath + '/'
 
   toggle: ->
     if @hasParent()
