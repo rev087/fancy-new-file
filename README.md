@@ -9,3 +9,11 @@ Inspired by sukoroda`s
 for Sublime Text.
 
 ![Fancy New File screenshot](http://i.imgur.com/5CCBcqC.gif)
+
+## Settings:
+
+All settings can be turned on and off via the built-in settings tab (`cmd-,`) and selecting Fancy New File from the list of installed packages.
+
+- Case Sensitive Auto Completion
+- Show Files In Auto Completion
+- Suggest Current File Path
