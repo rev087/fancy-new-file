@@ -8,6 +8,8 @@ class FancyNewFileView extends View
   fancyNewFileView: null
   @configDefaults:
     suggestCurrentFilePath: false
+    showFilesInAutoComplete: false
+    caseSensitiveAutoCompletion: false
 
   @activate: (state) ->
     @fancyNewFileView = new FancyNewFileView(state.fancyNewFileViewState)
@@ -56,29 +58,52 @@ class FancyNewFileView extends View
     path.join @referenceDir(), input.substr(0, input.lastIndexOf(path.sep))
 
   # Returns the list of directories matching the current input (path and autocomplete fragment)
-  getDirs: (callback) ->
+  getFileList: (callback) ->
     input = @miniEditor.getEditor().getText()
-    fs.readdir @inputPath(), (err, files) =>
-      files = files?.filter (fileName) =>
-        fragment = input.substr(input.lastIndexOf(path.sep) + 1, input.length)
-        isDir = fs.statSync(path.join(@inputPath(), fileName)).isDirectory()
-        isDir and fileName.toLowerCase().indexOf(fragment) is 0
+    fs.stat @inputPath(), (err, stat) =>
 
-      callback.apply @, [files]
+      if err?.code is 'ENOENT'
+        return []
+
+      fs.readdir @inputPath(), (err, files) =>
+
+        fileList = []
+        dirList = []
+
+        files.forEach (filename) =>
+          fragment = input.substr(input.lastIndexOf(path.sep) + 1, input.length)
+          caseSensitive = atom.config.get 'fancy-new-file.caseSensitiveAutoCompletion'
+
+          if not caseSensitive
+            fragment = fragment.toLowerCase()
+
+          matches =
+            caseSensitive and filename.indexOf(fragment) is 0 or
+            not caseSensitive and filename.toLowerCase().indexOf(fragment) is 0
+
+          if matches
+            isDir = fs.statSync(path.join(@inputPath(), filename)).isDirectory()
+            (if isDir then dirList else fileList).push name:filename, isDir:isDir
+
+        if atom.config.get 'fancy-new-file.showFilesInAutoComplete'
+          callback.apply @, [dirList.concat fileList]
+        else
+          callback.apply @, [dirList]
 
   # Called only when pressing Tab to trigger auto-completion
   autocomplete: (str) ->
-    @getDirs (files) ->
-      if files?.length == 1
-        newPath = path.join(@inputPath(), files[0])
-        relativePath = atom.project.relativize(newPath) + path.sep
+    @getFileList (files) ->
+      if files?.length is 1
+        newPath = path.join(@inputPath(), files[0].name)
+        suffix = if files[0].isDir then '/' else ''
+        relativePath = atom.project.relativize(newPath) + suffix
         @miniEditor.getEditor().setText relativePath
       else
         atom.beep()
 
   update: ->
-    @getDirs (files) ->
-      @renderDirList files
+    @getFileList (files) ->
+      @renderAutocompleteList files
 
     if /\/$/.test @miniEditor.getEditor().getText()
       @setMessage 'file-directory-create'
@@ -94,12 +119,13 @@ class FancyNewFileView extends View
     @message.text str or "Enter the path for the new file/directory. Directories end with a '" + path.sep + "'."
 
   # Renders the list of directories
-  renderDirList: (dirs) ->
+  renderAutocompleteList: (files) ->
     @directoryList.empty()
-    dirs?.forEach (file) =>
+    files?.forEach (file) =>
+      icon = if file.isDir then 'icon-file-directory' else 'icon-file-text'
       @directoryList.append $$ ->
         @li class: 'list-item', =>
-        @span class: 'icon icon-file-directory', file
+          @span class: "icon #{icon}", file.name
 
   confirm: ->
     relativePath = @miniEditor.getEditor().getText()
@@ -133,7 +159,7 @@ class FancyNewFileView extends View
     @previouslyFocusedElement = $(':focus')
     atom.workspaceView.append(this)
     @miniEditor.focus()
-    @getDirs (files) -> @renderDirList files
+    @getFileList (files) -> @renderAutocompleteList files
 
   suggestPath: ->
     if atom.config.get 'fancy-new-file.suggestCurrentFilePath'
