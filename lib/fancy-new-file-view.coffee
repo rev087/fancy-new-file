@@ -57,6 +57,10 @@ class FancyNewFileView extends View
     input = @miniEditor.getEditor().getText()
     path.join @referenceDir(), input.substr(0, input.lastIndexOf(path.sep))
 
+  inputFullPath: () ->
+    input = @miniEditor.getEditor().getText()
+    path.join @referenceDir(), input
+
   # Returns the list of directories matching the current input (path and autocomplete fragment)
   getFileList: (callback) ->
     input = @miniEditor.getEditor().getText()
@@ -93,13 +97,28 @@ class FancyNewFileView extends View
   # Called only when pressing Tab to trigger auto-completion
   autocomplete: (str) ->
     @getFileList (files) ->
+      updatedPath = ""
       if files?.length is 1
         newPath = path.join(@inputPath(), files[0].name)
         suffix = if files[0].isDir then '/' else ''
-        relativePath = atom.project.relativize(newPath) + suffix
-        @miniEditor.getEditor().setText relativePath
+
+        @updatePath(newPath + suffix)
+
+      else if files?.length > 1
+        longestPrefix = @longestCommonPrefix((file.name for file in files))
+        newPath = path.join(@inputPath(), longestPrefix)
+
+        if (newPath.length > @inputFullPath().length)
+          @updatePath(newPath)
+        else
+          atom.beep()
       else
         atom.beep()
+
+  updatePath: (newPath) ->
+    relativePath = atom.project.relativize(newPath)
+    @miniEditor.getEditor().setText relativePath
+
 
   update: ->
     @getFileList (files) ->
@@ -180,3 +199,19 @@ class FancyNewFileView extends View
       @previouslyFocusedElement.focus()
     else
       atom.workspaceView.focus()
+
+  longestCommonPrefix: (fileNames) ->
+    if (fileNames?.length == 0)
+      return ""
+
+    longestCommonPrefix = ""
+    for prefixIndex in [0..fileNames[0].length - 1]
+      nextCharacter = fileNames[0][prefixIndex]
+      for fileIndex in [0..fileNames.length - 1]
+        fileName = fileNames[fileIndex]
+        if (fileName.length < prefixIndex || fileName[prefixIndex] != nextCharacter)
+          # The first thing that doesn't share the common prefix!
+          return longestCommonPrefix
+      longestCommonPrefix += nextCharacter
+
+    return longestCommonPrefix
