@@ -1,3 +1,9 @@
+# NO LONGER MAINTAINED
+
+This package is no longer maintained. Please use @trudko's [advanced-new-file](https://github.com/Trudko/advanced-new-file) instead.
+
+For reference, this is what this package did.
+
 # Fancy New File package
 
 Fancy New File is a plugin for Github's Atom text editor that gives you a
